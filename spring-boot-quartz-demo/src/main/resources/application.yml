@@ -1,0 +1,89 @@
+
+server:
+  address:
+  port: 8081
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*/module/*/*Mapper.xml
+  typeAliasesPackage: cn.raysonblog.*.module.*.entity
+  global-config:
+    id-type: 1
+    db-column-underline: false
+    refresh-mapper: true
+    # capital-mode: false
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    lazyLoadingEnabled: false
+    multipleResultSetsEnabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: false
+  support-methods-arguments: true
+  params: count=countSql
+
+spring:
+  devtools:
+    restart:
+      additional-paths: src/main/java
+      exclude: /static/**
+  thymeleaf:
+    cache: false
+  resources:
+    static-locations: classpath:/static/,classpath:/views/
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/hotdog?useUnicode=true&useSSL=false&serverTimezone=GMT%2B8
+    username: root
+    password:
+    initialSize: 5
+    minIdle: 5
+    maxActive: 20
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: SELECT 1 FROM DUAL
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 20
+    filters: stat,wall,log4j2
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+  quartz:
+    #相关属性配置
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: clusteredScheduler
+            instanceId: AUTO
+          jobStore:
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            tablePrefix: QRTZ_
+            isClustered: true
+            clusterCheckinInterval: 10000
+            useProperties: false
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadPriority: 5
+            threadsInheritContextClassLoaderOfInitializingThread: true
+
+    #数据库方式
+    job-store-type: jdbc
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: info
+    web: info
+  file: logs/raytoo.log
