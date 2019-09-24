@@ -28,7 +28,7 @@ public class SwaggerConfig {
     /**
      * swagger2扫描的基本包路径
      */
-    private static final String basePackage = "cn.raysonblog.hotdog.module";
+    private static final String basePackage = "cn.raysonblog";
 
     @Bean
     public Docket defaultApi() {
@@ -53,7 +53,7 @@ public class SwaggerConfig {
                 .title("利用swagger2构建【spring-boot-demo-all】系统api文档")
                 .description("基于Spring Boot 2.x为基础上集成其他组件的案例, 方便大家学习使用。<br/>接口访问地址：http://localhost:8081/, by raysonfang")
                 .termsOfServiceUrl("http://localhost:8081/")
-                .contact(new Contact("author: raysonfang, 微信公众号：Java技术干货", "https://www.raysonblog.cn/", "793514387@qq.com"))
+                .contact(new Contact("author: raysonfang, 微信公众号：Java技术干货(ID:raysonfang)", "https://www.raysonblog.cn/", "793514387@qq.com"))
                 .version("1.0")
                 .build();
     }
