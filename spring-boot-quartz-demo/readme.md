@@ -1,1 +1,1 @@
-![](./docs/image/quartz-swagger.png)
+![](docs/image/quartz-swagger.png)
