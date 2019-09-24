@@ -1,0 +1,1 @@
+![](./docs/image/quartz-swagger.png)
