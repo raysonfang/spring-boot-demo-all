@@ -22,90 +22,91 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
-@Api(tags="quartz定时任务管理")
+@Api(tags = "quartz定时任务管理")
 @CrossOrigin
 @RestController
 @RequestMapping(path = "/job")
 @Slf4j
 public class JobController extends BaseController {
-	
 
-    
+
     @Autowired
     private IJobService jobService;
-    
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-	@ApiOperation(value="新建任务")
-	@PostMapping("/add")
-    public AjaxResult save(QuartzEntity quartzEntity){
-    	log.info("新建任务:QuartzEntity={}", quartzEntity);
-    	try {
-			jobService.addJob(quartzEntity);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return error("新增任务异常");
-		}
-    	return json("新增任务成功");
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @ApiOperation(value = "新建任务")
+    @PostMapping("/add")
+    public AjaxResult save(QuartzEntity quartzEntity) {
+        log.info("新建任务:QuartzEntity={}", quartzEntity);
+        try {
+            jobService.addJob(quartzEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error("新增任务异常");
+        }
+        return json("新增任务成功");
     }
-    
-    @ApiOperation(value="任务列表")
-	@GetMapping("/list")
-	public AjaxResult list(QuartzEntity quartzEntity
-			 , @RequestParam(value = "page", required = false, defaultValue = "1") @Min(1) Integer page //page
-	         , @RequestParam(value = "pageCount", required = false, defaultValue = "100") @Max(100) @Min(1) Integer pageCount//pageCount
-	        ){
-    	log.info("查询任务列表:QuartzEntity={}", quartzEntity);
-		List<QuartzEntity> list = jobService.listQuartzEntity(quartzEntity);
-		return json(list);
-	}
-    
-    @ApiOperation(value="触发任务")
-	@PostMapping("/trigger")
-	public  AjaxResult trigger(QuartzEntity quartzEntity, HttpServletResponse response) {
-    	log.info("触发任务:QuartzEntity={}", quartzEntity);
-		try {
-		     jobService.triggerJob(quartzEntity);
-		} catch (Exception e) {
-			 e.printStackTrace();
-			 return error("触发任务失败");
-		}
-		return json("成功");
-	}
-    
-    @ApiOperation(value="停止任务")
+
+    @ApiOperation(value = "任务列表")
+    @GetMapping("/list")
+    public AjaxResult list(QuartzEntity quartzEntity
+            , @RequestParam(value = "page", required = false, defaultValue = "1") @Min(1) Integer page //page
+            , @RequestParam(value = "pageCount", required = false, defaultValue = "100") @Max(100) @Min(1) Integer pageCount//pageCount
+    ) {
+        log.info("查询任务列表:QuartzEntity={}", quartzEntity);
+        List<QuartzEntity> list = jobService.listQuartzEntity(quartzEntity);
+        return json(list);
+    }
+
+    @ApiOperation(value = "触发任务")
+    @PostMapping("/trigger")
+    public AjaxResult trigger(QuartzEntity quartzEntity, HttpServletResponse response) {
+        log.info("触发任务:QuartzEntity={}", quartzEntity);
+        try {
+            jobService.triggerJob(quartzEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error("触发任务失败");
+        }
+        return json("成功");
+    }
+
+    @ApiOperation(value = "停止任务")
     @PostMapping("/pause")
-	public  AjaxResult pause(QuartzEntity quartzEntity,HttpServletResponse response) {
-    	log.info("停止任务:QuartzEntity={}", quartzEntity);
-		try {
-		     jobService.pauseJob(quartzEntity);
-		} catch (Exception e) {
-			 e.printStackTrace();
-			 return error("停止任务失败");
-		}
-		return json("成功");
-	}
-    @ApiOperation(value="恢复任务")
-	@PostMapping("/resume")
-	public  AjaxResult resume(QuartzEntity quartzEntity,HttpServletResponse response) {
-		log.info("恢复任务:QuartzEntity={}", quartzEntity);
-		try {
-		     jobService.resumeJob(quartzEntity);
-		} catch (Exception e) {
-			 e.printStackTrace();
-			 return error("恢复任务失败");
-		}
-		return json("成功");
-	}
-	@ApiOperation(value="移除任务")
-	@PostMapping("/remove")
-	public  AjaxResult remove(QuartzEntity quartzEntity,HttpServletResponse response) {
-		log.info("移除任务:QuartzEntity={}", quartzEntity);
-		try {  
+    public AjaxResult pause(QuartzEntity quartzEntity, HttpServletResponse response) {
+        log.info("停止任务:QuartzEntity={}", quartzEntity);
+        try {
+            jobService.pauseJob(quartzEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error("停止任务失败");
+        }
+        return json("成功");
+    }
+
+    @ApiOperation(value = "恢复任务")
+    @PostMapping("/resume")
+    public AjaxResult resume(QuartzEntity quartzEntity, HttpServletResponse response) {
+        log.info("恢复任务:QuartzEntity={}", quartzEntity);
+        try {
+            jobService.resumeJob(quartzEntity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return error("恢复任务失败");
+        }
+        return json("成功");
+    }
+
+    @ApiOperation(value = "移除任务")
+    @PostMapping("/remove")
+    public AjaxResult remove(QuartzEntity quartzEntity, HttpServletResponse response) {
+        log.info("移除任务:QuartzEntity={}", quartzEntity);
+        try {
             jobService.deleteJob(quartzEntity);
         } catch (Exception e) {
-        	e.printStackTrace();
+            e.printStackTrace();
             return error("移除任务失败");
-        }  
-		return json("失败");
-	}
+        }
+        return json("失败");
+    }
 }

@@ -23,7 +23,7 @@ public class MybatisPlusConfig {
     /**
      * druid数据库连接池
      */
-    @Bean(initMethod = "init", destroyMethod="close")
+    @Bean(initMethod = "init", destroyMethod = "close")
     public DruidDataSource dataSource() {
         DruidDataSource dataSource = new DruidDataSource();
         druidProperties.config(dataSource);

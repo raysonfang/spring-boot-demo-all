@@ -1,13 +1,13 @@
 package cn.raysonblog.quartz.core.exception;
 
 /**
- * 
  * <p>Title: ServiceException</p>
  * <p>Description: 业务层异常类</p>
  * <p>Company: </p>
+ *
  * @author rayson
- * @date 2018-06-20 17:57
  * @version 1.0
+ * @date 2018-06-20 17:57
  */
 public class ServiceException extends RuntimeException {
 
@@ -19,9 +19,9 @@ public class ServiceException extends RuntimeException {
     public ServiceException(String message) {
         super(message);
     }
-    
-    public ServiceException(){
-    	
+
+    public ServiceException() {
+
     }
-    
+
 }

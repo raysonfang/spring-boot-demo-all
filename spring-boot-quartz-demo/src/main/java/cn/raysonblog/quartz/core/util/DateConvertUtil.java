@@ -11,8 +11,8 @@ import java.util.List;
 
 /**
  * 日期转换类
- * @author rayson
  *
+ * @author rayson
  */
 public class DateConvertUtil {
 
@@ -798,8 +798,8 @@ public class DateConvertUtil {
     }
 
     /*
-    * 将时间戳转换为时间
-    */
+     * 将时间戳转换为时间
+     */
     public static String stampToDate(Long s) {
         String res;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1019,7 +1019,7 @@ public class DateConvertUtil {
         System.out.println(getYearFromDate("2017-02-15") );
         System.out.println("sales_library,ybxs".split("[;]").length);*/
 
-        System.out.println(getDateSringByAddDays("2017-02-01", -1,false,false));
+        System.out.println(getDateSringByAddDays("2017-02-01", -1, false, false));
     }
 
 

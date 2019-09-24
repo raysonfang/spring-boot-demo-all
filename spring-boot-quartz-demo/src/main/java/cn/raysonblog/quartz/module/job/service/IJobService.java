@@ -6,9 +6,9 @@ import cn.raysonblog.quartz.base.service.IBaseService;
 import cn.raysonblog.quartz.module.job.entity.QuartzEntity;
 
 public interface IJobService extends IBaseService<QuartzEntity> {
-	
+
     List<QuartzEntity> listQuartzEntity(QuartzEntity quartzEntity);
-    
+
     Long listQuartzEntityCount(QuartzEntity quartzEntity);
 
     boolean addJob(QuartzEntity quartzEntity);

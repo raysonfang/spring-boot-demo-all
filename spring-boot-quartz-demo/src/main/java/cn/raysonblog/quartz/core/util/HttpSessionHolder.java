@@ -1,13 +1,14 @@
 package cn.raysonblog.quartz.core.util;
 
 import javax.servlet.http.HttpSession;
+
 /**
  * 解决非Controller中获取当前session的工具类
- * @author rayson
  *
+ * @author rayson
  */
 public class HttpSessionHolder {
-	private static ThreadLocal<HttpSession> tl = new ThreadLocal<HttpSession>();
+    private static ThreadLocal<HttpSession> tl = new ThreadLocal<HttpSession>();
 
     public static void put(HttpSession s) {
         tl.set(s);

@@ -13,12 +13,14 @@ import java.net.UnknownHostException;
 
 /**
  * SpringBoot 启动类
+ *
  * @author raysonfang
  */
 @SpringBootApplication
 public class SpringBootDemoAllApplication implements ApplicationListener<WebServerInitializedEvent> {
     static Logger log = LogManager.getLogger(SpringBootDemoAllApplication.class);
     private static WebServerInitializedEvent event;
+
     public static void main(String[] args) {
 
         SpringApplication.run(SpringBootDemoAllApplication.class, args);

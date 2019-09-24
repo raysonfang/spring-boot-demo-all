@@ -2,13 +2,14 @@ package cn.raysonblog.quartz.core.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
 /**
  * MD5加密类
- * @author Rayson
  *
+ * @author Rayson
  */
 public class MD5Util {
-	public static String encrypt(String source) {
+    public static String encrypt(String source) {
         return encodeMd5(source.getBytes());
     }
 

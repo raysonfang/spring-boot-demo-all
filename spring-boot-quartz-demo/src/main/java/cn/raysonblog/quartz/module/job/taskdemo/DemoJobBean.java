@@ -8,6 +8,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 
 /**
  * 定时任务demo
+ *
  * @author raysonfang
  */
 @Slf4j

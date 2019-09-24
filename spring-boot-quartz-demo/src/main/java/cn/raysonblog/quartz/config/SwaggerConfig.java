@@ -31,8 +31,8 @@ public class SwaggerConfig {
     private static final String basePackage = "cn.raysonblog.hotdog.module";
 
     @Bean
-    public Docket defaultApi(){
-        
+    public Docket defaultApi() {
+
         /**
          * 配置请求头参数
          */
@@ -46,7 +46,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo()).useDefaultResponseMessages(false).globalOperationParameters(aParameters).select()
                 .apis(RequestHandlerSelectors.basePackage(basePackage)).paths(PathSelectors.any()).build();
     }
-    
+
     // 预览地址:swagger-ui.html
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()

@@ -9,8 +9,8 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface JobMapper extends IBaseMapper<QuartzEntity> {
-	
-	public List<QuartzEntity> listQuartzEntity(QuartzEntity quartz);
-	
-	public Long listQuartzEntityCount(QuartzEntity quartz);
+
+    public List<QuartzEntity> listQuartzEntity(QuartzEntity quartz);
+
+    public Long listQuartzEntityCount(QuartzEntity quartz);
 }
