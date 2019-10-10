@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6cec31fe-ed50-45b7-8de2-172528bfce12" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/shop-service-consumer/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/shop-service-consumer/src/main/resources/log4j2.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/shop-service-provider/src/main/java/cn/raysonblog/shopserviceprovider/service/RpcShopService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/shop-service-provider/src/main/java/cn/raysonblog/shopserviceprovider/service/impl/ShopServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/shop-service-provider/src/main/resources/log4j2.xml" afterDir="false" />
-    </list>
+    <list default="true" id="6cec31fe-ed50-45b7-8de2-172528bfce12" name="Default Changelist" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/shop-service-provider/target/" />
     <ignored path="$PROJECT_DIR$/shop-service-consumer/target/" />
@@ -316,7 +310,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="6" />
     <option name="y" value="12" />
     <option name="width" value="1260" />
@@ -439,6 +433,7 @@
     <property name="RequestMappingsPanelOrder1" value="1" />
     <property name="RequestMappingsPanelWidth0" value="75" />
     <property name="RequestMappingsPanelWidth1" value="75" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/shop-service-consumer/src/main/resources" />
@@ -497,16 +492,15 @@
       <workItem from="1570609916142" duration="990000" />
       <workItem from="1570610929957" duration="3846000" />
       <workItem from="1570630336935" duration="2206000" />
-      <workItem from="1570668987267" duration="3069000" />
+      <workItem from="1570668987267" duration="3576000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="26774000" />
+    <option name="totallyTimeSpent" value="27281000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
-    <editor active="true" />
+    <frame x="-7" y="-7" width="1295" height="695" extended-state="7" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.35569927" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -519,7 +513,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.3285968" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.43161634" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.43161634" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -530,7 +524,7 @@
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" weight="0.3285968" />
       <window_info anchor="bottom" id="Messages" order="12" weight="0.3285968" />
       <window_info anchor="bottom" id="Database Changes" order="13" />
-      <window_info anchor="bottom" id="Version Control" order="14" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="14" visible="true" weight="0.3285968" />
       <window_info anchor="bottom" id="Java Enterprise" order="15" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.2497979" />
