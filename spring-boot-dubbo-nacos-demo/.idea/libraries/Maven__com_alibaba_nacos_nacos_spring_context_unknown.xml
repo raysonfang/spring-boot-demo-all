@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.alibaba.nacos:nacos-spring-context:unknown">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/alibaba/nacos/nacos-spring-context/unknown/nacos-spring-context-unknown.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/alibaba/nacos/nacos-spring-context/unknown/nacos-spring-context-unknown-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/alibaba/nacos/nacos-spring-context/unknown/nacos-spring-context-unknown-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

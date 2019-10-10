@@ -1,0 +1,27 @@
+
+spring:
+  application:
+    name: shop-service-provider
+# log config
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: info
+    web: info
+  file: logs/shop-service-provider.log
+
+# Dubbo Application  nacos
+## The default value of dubbo.application.name is ${spring.application.name}
+## dubbo.application.name=${spring.application.name}
+nacos:
+  service-address: 127.0.0.1
+  port: 8848
+dubbo:
+  registry:
+    address: nacos://${nacos.service-address}:${nacos.port}
+  protocol:
+    name: dubbo
+    port: 20881
+  scan:
+   base-packages: cn.raysonblog.*.service.impl
+

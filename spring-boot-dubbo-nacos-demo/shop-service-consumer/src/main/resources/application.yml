@@ -1,0 +1,32 @@
+server:
+  address:
+  port: 8081
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+
+spring:
+  application:
+    name: shop-service-consumer
+
+# log config
+logging:
+  config: classpath:log4j2.xml
+  level:
+    root: info
+    web: info
+  file: logs/shop-service-provider.log
+
+# Dubbo Application  nacos
+## The default value of dubbo.application.name is ${spring.application.name}
+## dubbo.application.name=${spring.application.name}
+nacos:
+  service-address: 127.0.0.1
+  port: 8848
+dubbo:
+  application:
+    logger: log4j2
+  registry:
+    address: nacos://${nacos.service-address}:${nacos.port}
+
