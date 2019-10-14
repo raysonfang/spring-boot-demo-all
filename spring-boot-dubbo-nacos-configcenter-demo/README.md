@@ -1,475 +1,142 @@
-# 《Spring Boot 2.x 基础案例：整合Dubbo 2.7.3+Nacos1.1.3（最新版）》
+# 《Spring Boot 2.x 基础案例：整合Dubbo 2.7.3+Nacos1.1.3（配置中心）》
 
-![本文的思维导图](https://upload-images.jianshu.io/upload_images/7253165-077b393fe4f0e2db.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![本文的思维导图](https://upload-images.jianshu.io/upload_images/7253165-ce16eb9a42596da6.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+> 本文原创首发于公众号：[Java技术干货](https://mp.weixin.qq.com/s?__biz=MzIzMDI5NDAwNg==&mid=2650997916&idx=1&sn=0e63ad00d34827c2cfe3f855bf0dadde&chksm=f3420c05c4358513ad022d4f392b23e5b2df6b905cd594f4cc5d3a3243d53f8ac500a3b95024&token=221164445&lang=zh_CN#rd)
+
 ### 1、概述
-本文将介绍如何基于Spring Boot 2.x的版本，通过Nacos作为配置与注册中心，实现Dubbo服务的注册与消费。
+本文将Nacos作为配置中心，实现配置外部化，动态更新。这样做的优点：**不需要重启应用，便可以动态更新应用里的配置信息。**在如今流行的微服务应用下，将应用的配置统一管理，显得尤为重要。
 
-整合组件的版本说明：
-* `Spring Boot 2.1.9`
-* `Dubbo 2.7.3`
-* `Nacos 1.1.3`
+上一篇写了《Spring Boot 2.x 基础案例：整合Dubbo 2.7.3+Nacos1.1.3（最新版）》[https://www.jianshu.com/p/b0dddce1d404](https://www.jianshu.com/p/b0dddce1d404)，在文章中，nacos的角色是注册中心。
 
-本文的亮点：
-- 1.采用yml方式进行dubbo的配置。
-- 2.相关组件采用较新版本进行整合。
-- 3.相关源代码放置于Github上，可随时查看。
-
-源代码放置Github: [https://github.com/raysonfang/spring-boot-demo-all](https://github.com/raysonfang/spring-boot-demo-all)
+本文也是在上一篇的基础上，继续学习和研究以Dubbo为微服务框架，nacos作为配置中心，应该如何进行实践。以及在此过程中，遇到了什么样的问题，如何解决。
 
 ---
 
-之前公司在使用Dubbo 2.6.1的时候，采用Zookeeper作为注册中心。当时，也只是仅仅拿来作为注册中心使用，一没有专门的管理后台进行可视化管理操作，二是功能单一，仅作为注册中心使用。
+### 2、nacos的必知必会
 
-经过一段时间的学习和了解以后，发现采用阿里开源的Nacos作为注册中心与外部配置中心。它比Zookeeper更适合做服务的注册与配置，毕竟是大厂开源，经过大量实践。
+在进行编码之前，先看看当nacos作为配置中心时，操作界面是啥，有哪些新的知识点，需要我们先去了解和掌握呢？以免，在后面搭建环境时，全程懵逼。
+![nacos配置管理](https://upload-images.jianshu.io/upload_images/7253165-6127194cc3f5c3be.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![新建配置](https://upload-images.jianshu.io/upload_images/7253165-aed99b1df42df95f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-如果不清楚Nacos是什么，或具有什么主要功能以及架构设计思想。自行花点时间查一下资料。
+**重要参数说明**
 
-**Nacos：**
+##### Data Id
 
-**注：**`此次主要实践Nacos作为注册中心，后面会单独整合Nacos作为配置中心的实践分享。`
+1.  Data Id的默认值为`${nacos.config.prefix}-${spring.profile.active}.${nacos.config.file-extension}`
+2.  `nacos.config.prefix`的默认值为`${spring.application.name}`
+3.  `nacos.config.file-extension`的默认值为`properties`
+4.  当`spring.profiles.active`未配置时，则匹配`${spring.application.name}.properties`
+5.  若设置了`spring.profiles.active`而Nacos中存在`${spring.application.name}.properties`时，若还存在`${spring.application.name}-${spring.profiles.active}.properties`，则默认匹配后者，若不存在，则会自动匹配前者
+6.  由于Nacos建议且默认用`spring.application.name`作为Data Id的前缀，若要在不同服务中共享项目统一配置，则可以通过配置`nacos.config.shared-dataids`或`nacos.config.refreshable-dataids`来添加共享配置，前者不支持自动刷新，后者支持
 
----
-### 2、基础框架搭建
-使用idea+maven多模块进行项目搭建
+##### Group
 
-**spring-boot-dubbo-nacos-demo：**父工程
-![](https://upload-images.jianshu.io/upload_images/7253165-839a252ccd2dd1b0.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+1.  这是一个很灵活的配置项，并没有固定的规定，可以用作多环境、多模块、多版本之间区分配置
 
-**shop-service-provider：** dubbo服务提供者
-![](https://upload-images.jianshu.io/upload_images/7253165-0c1f4a84227a3905.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+##### Namespace
 
-**shop-service-consumer:** dubbo服务消费者，是一个web工程
-![](https://upload-images.jianshu.io/upload_images/7253165-b6a4aac580569d63.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+1.  推荐使用命名空间来区分不同环境的配置，因为使用`profiles`或`group`会是不同环境的配置展示到一个页面，而Nacos控制台对不同的`Namespace`做了Tab栏分组展示，如下图：
 
----
-### 3、pom.xml说明
-**spring-boot-dubbo-nacos-demo：**父工程的pom.xml
+![命名空间ID](https://upload-images.jianshu.io/upload_images/7253165-020f9781f3c5e0e8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+2.  注意配置`Namespace`的时候不是通过名称，而是通过命名空间的ID(上图所示)，可通过如下配置来设置服务使用的命名空间：
 ```
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>cn.raysonblog</groupId>
-    <artifactId>misco-dubbo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>misco-dubbo</name>
-    <packaging>pom</packaging>
-    <description>Demo project for Spring Boot Dubbo Nacos</description>
-
-    <modules>
-        <module>shop-service-provider</module>
-        <module>shop-service-consumer</module>
-    </modules>
-
-    <properties>
-        <java.version>1.8</java.version>
-        <spring-boot.version>2.1.9.RELEASE</spring-boot.version>
-        <dubbo.version>2.7.3</dubbo.version>
-    </properties>
-
-    <dependencyManagement>
-        <dependencies>
-            <!-- Spring Boot -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-
-            <!-- Apache Dubbo  -->
-            <dependency>
-                <groupId>org.apache.dubbo</groupId>
-                <artifactId>dubbo-dependencies-bom</artifactId>
-                <version>${dubbo.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <!-- Dubbo Spring Boot Starter -->
-            <dependency>
-                <groupId>org.apache.dubbo</groupId>
-                <artifactId>dubbo-spring-boot-starter</artifactId>
-                <version>${dubbo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.dubbo</groupId>
-                <artifactId>dubbo</artifactId>
-                <version>${dubbo.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>spring</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>javax.servlet</groupId>
-                        <artifactId>servlet-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>log4j</groupId>
-                        <artifactId>log4j</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <repositories>
-        <repository>
-            <id>apache.snapshots.https</id>
-            <name>Apache Development Snapshot Repository</name>
-            <url>https://repository.apache.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-</project>
-
-```
----
-**shop-service-provider：** pom.xml引入dubbo与nacos相关的jar
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>cn.raysonblog</groupId>
-        <artifactId>misco-dubbo</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath> <!-- lookup parent from repository -->
-    </parent>
-    <groupId>cn.raysonblog</groupId>
-    <artifactId>shop-service-provider</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>shop-service-provider</name>
-    <description>服务者 Demo project for Spring Boot dubbo nacos</description>
-
-    <properties>
-        <java.version>1.8</java.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <exclusions>
-                <!-- 排除自带的logback依赖 -->
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
-        </dependency>
-        <!--<dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>runtime</scope>
-        </dependency>-->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <!-- Dubbo -->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo</artifactId>
-        </dependency>
-
-        <!-- Dubbo Registry Nacos -->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-registry-nacos</artifactId>
-            <version>2.7.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-        </dependency>
-    </dependencies>
-    <repositories>
-        <repository>
-            <id>apache.snapshots.https</id>
-            <name>Apache Development Snapshot Repository</name>
-            <url>https://repository.apache.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-</project>
-
-```
----
-**shop-service-consumer:** pom.xml
-```
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>cn.raysonblog</groupId>
-        <artifactId>misco-dubbo</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath> <!-- lookup parent from repository -->
-    </parent>
-    <groupId>cn.raysonblog</groupId>
-    <artifactId>shop-service-consumer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>shop-service-consumer</name>
-    <description>Demo project for Spring Boot dubbo nacos</description>
-
-    <properties>
-        <java.version>1.8</java.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <!-- 排除自带的logback依赖 -->
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-log4j2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo</artifactId>
-        </dependency>
-
-        <!-- Dubbo Registry Nacos -->
-        <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-registry-nacos</artifactId>
-            <version>2.7.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-spring-context</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>cn.raysonblog</groupId>
-            <artifactId>shop-service-provider</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
-    <repositories>
-        <repository>
-            <id>apache.snapshots.https</id>
-            <name>Apache Development Snapshot Repository</name>
-            <url>https://repository.apache.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-</project>
-
-```
----
-### 4、配置文件说明
-网上大部分资料都是基于application.properties配置，或者是基于xml配置dubbo的相关参数。而实际上，在Spring Boot工程中，
-**shop-service-provider：**application.yml配置文件说明
-```
-
-spring:
-  application:
-    name: shop-service-provider
-# log config
-logging:
-  config: classpath:log4j2.xml
-  level:
-    root: info
-    web: info
-  file: logs/shop-service-provider.log
-
-# Dubbo Application  nacos
-## The default value of dubbo.application.name is ${spring.application.name}
-## dubbo.application.name=${spring.application.name}
 nacos:
   service-address: 127.0.0.1
   port: 8848
-dubbo:
-  registry:
-    address: nacos://${nacos.service-address}:${nacos.port}
-  protocol:
-    name: dubbo
-    port: 20881
-  scan:
-   base-packages: cn.raysonblog.*.service.impl
+  config:
+    server-addr: ${nacos.service-address}:${nacos.port}
+    namespace: 9af36d59-2efd-4f43-8a69-82fb37fc8094  # 命名空间ID 不是命名空间名称
 ```
 ---
-**shop-service-consumer:** application.yml说明
+### 3、基础框架搭建
+我的建议，尽可能自己花点时间，在不熟悉的情况下，尽量按照自己的想法思路，从零开始搭建一下，加深印象。在搭建过程中，可能会遇到问题，此时不要慌（嘴上不说，心里却慌得狠）。但幸运的是，你遇到了我，可以联系，留言或关注我，一起交流。
+
+为了不造成知识点的混淆，我将`spring-boot-dubbo-nacos-demo`的maven工程，源代码已同步于github，重新拷贝一份，项目重新命名为`spring-boot-dubbo-nacos-configcenter-demo`。
+![](https://upload-images.jianshu.io/upload_images/7253165-c0b6b916f0d0b42a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+直接拷贝过来，项目名变更，对应的pom.xml还需要修改一下
+![](https://upload-images.jianshu.io/upload_images/7253165-9029da317bdf0b95.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+修改**shop-service-provider和shop-service-consumer:**的pom.xml
+![修改shop-service-provider的pom.xml](https://upload-images.jianshu.io/upload_images/7253165-284a977b34c27343.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![修改shop-service-consumer的pom.xml](https://upload-images.jianshu.io/upload_images/7253165-94db11b684fca0a1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+按照上一篇文章的**6、测试**，看一下项目是否能正常启动，如果正常，我们在开始整合nacos的配置中心。确保前面的功能都是正常的。
+
+---
+### 4、pom.xml说明
+如果想nacos作为配置中心，需要在对应的maven工程中引入`nacos-config-spring-boot-starter`的依赖包，这里，将此依赖包在shop-service-provider和shop-service-consumer的项目中同时引入，这样可以方便服务提供者和服务消费者之间的测试。
+
+这里就不把pom.xml的代码全部粘贴出来，大家想看的话，可以去上一篇文章中看。
+
+`pom.xml`新增`nacos-config-spring-boot-starter`依赖
 ```
-server:
-  address:
-  port: 8081
-  servlet:
-    context-path: /
-  tomcat:
-    uri-encoding: UTF-8
-
-spring:
-  application:
-    name: shop-service-consumer
-
-# log config
-logging:
-  config: classpath:log4j2.xml
-  level:
-    root: info
-    web: info
-  file: logs/shop-service-provider.log
-
-# Dubbo Application  nacos
-## The default value of dubbo.application.name is ${spring.application.name}
-## dubbo.application.name=${spring.application.name}
+<!-- nacos config依赖 -->
+        <dependency>
+            <groupId>com.alibaba.boot</groupId>
+            <artifactId>nacos-config-spring-boot-starter</artifactId>
+            <version>0.2.3</version>
+        </dependency>
+```
+### 5、配置文件说明
+shop-service-provider和shop-service-consumer的application.yml，增如下配置，启动项目，会和nacos创建连接
+```
 nacos:
   service-address: 127.0.0.1
   port: 8848
-dubbo:
-  registry:
-    address: nacos://${nacos.service-address}:${nacos.port}
+  config:
+    server-addr: ${nacos.service-address}:${nacos.port}
 ```
-
-dubbo相关参数：也可以在`DubboConfigurationProperties`类中查看
-![](https://upload-images.jianshu.io/upload_images/7253165-7af386ac25bfdfaf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+相关配置参数，请参考`com.alibaba.boot.nacos.config.properties.NacosConfigProperties.java`
+![NacosConfigProperties](https://upload-images.jianshu.io/upload_images/7253165-01dba055d8d4496f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ---
-### 5、编写业务代码
-#####**shop-service-provider：**代码实现
 
-针对dubbo服务提供者，我没有单独把`RpcShopService`接口单独放到一个子模块提供，建议在引用到实际项目中，可以单独提供接口包，在消费端直接引用接口包，这样就可以脱离服务提供者。
+### 6、编写业务代码
+##### 6.1、shop-service-provider增加配置实体类NacosConfig.java
 
-`ShopServiceProviderApplication.java`启动主类
+NacosConfig.java代码实现：
 ```
-package cn.raysonblog.shopserviceprovider;
+package cn.raysonblog.shopserviceprovider.config;
 
-import org.apache.dubbo.config.spring.context.annotation.DubboConfigConfiguration;
-import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.concurrent.CountDownLatch;
+import com.alibaba.nacos.api.config.annotation.NacosValue;
+import com.alibaba.nacos.spring.context.annotation.config.NacosPropertySource;
+import lombok.Data;
+import org.springframework.stereotype.Component;
 
 /**
- * dubbo 服务提供方
- * @author raysonfang
- * @公众号 Java技术干货（ID:raysonfang）
- */
-@SpringBootApplication
-@EnableDubbo
-public class ShopServiceProviderApplication {
-
-    //使用jar方式打包的启动方式
-    private static CountDownLatch countDownLatch = new CountDownLatch(1);
-    public static void main(String[] args) throws InterruptedException{
-        SpringApplication.run(ShopServiceProviderApplication.class, args).registerShutdownHook();
-        countDownLatch.await();
-    }
-}
-```
-需要注意`@EnableDubbo`这个注解，是开启Dubbo服务必要的。
-
----
-`RpcShopService.java`：暴露接口，供消费端使用
-```
-package cn.raysonblog.shopserviceprovider.service;
-
-/**
- * 提供暴露的Rpc接口
+ * 从Nacos外部拉取配置, 修改配置，自动会刷新应用的配置
+ *
  * @author raysonfang
  */
-public interface RpcShopService {
-    String sayHello(String name);
+@NacosPropertySource(dataId = "rayson", autoRefreshed = true)
+@Data
+@Component
+public class NacosConfig {
+
+    @NacosValue(value = "${service.name:1}", autoRefreshed = true)
+    private String serviceName;
 }
-
 ```
----
 
-`ShopServiceImpl.java`: 实现类
+注解说明：
+`@NacosPropertySource`注解其中包含两个属性，如下：
+ - dataId：这个属性是需要在Nacos中配置的Data Id。
+ - autoRefreshed：为true的话开启自动更新。
 
+在使用Nacos做配置中心后，需要使用`@NacosValue`注解获取配置，使用方式与`@Value`一样。
+
+其中`${service.name:1}`的service.name是属性key,  `1`是默认值。
+
+##### 6.2、shop-service-provider将NacosConfig的信息暴露到接口中获取
 ```
 package cn.raysonblog.shopserviceprovider.service.impl;
 
+import cn.raysonblog.shopserviceprovider.config.NacosConfig;
 import cn.raysonblog.shopserviceprovider.service.RpcShopService;
 import org.apache.dubbo.config.annotation.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 接口实现类
@@ -482,15 +149,38 @@ import org.apache.dubbo.config.annotation.Service;
 @Service
 public class ShopServiceImpl implements RpcShopService {
 
+    @Autowired
+    NacosConfig nacosConfig;
+
     public String sayHello(String name) {
         return name;
     }
-}
 
+    /**
+     * 将nacos config的配置信息暴露给服务消费者
+     * @param desc
+     * @return
+     */
+    public String getConfigServiceName(String desc){
+        return nacosConfig.getServiceName()+desc;
+    }
+}
+```
+`RpcShopService.java`接口新增`getConfigServiceName()`方法
+```
+package cn.raysonblog.shopserviceprovider.service;
+
+/**
+ * 提供暴露的Rpc接口
+ * @author raysonfang
+ */
+public interface RpcShopService {
+    String sayHello(String name);
+    String getConfigServiceName(String desc);
+}
 ```
 
----
-#####**shop-service-consumer:** 代码实现
+##### 6.3、shop-service-consumer新增接口方法`/getConfig`
 ```
 package cn.raysonblog.shopserviceconsumer;
 
@@ -514,9 +204,21 @@ public class ShopServiceConsumerApplication {
     @Reference
     RpcShopService shopService;
 
-    @RequestMapping(name = "/sayHello", method = RequestMethod.GET)
+    /**
+     * 注释原因： 在主应用入口，只运行有一个RequestMapping 否则会报错。
+     */
+  /*  @RequestMapping(name = "/sayHello", method = RequestMethod.GET)
     public String sayHello(){
         return shopService.sayHello("Hello Dubbo Nacos!更多原创分享，技术交流，关注：Java技术干货（ID:raysonfang）");
+    }*/
+
+    /**
+     * Nacos config配置中心 获取配置信息 测试接口
+     * @return
+     */
+    @RequestMapping(name = "/getConfig", method = RequestMethod.GET)
+    public String getConfig(){
+        return shopService.getConfigServiceName("更多原创分享，技术交流，关注：Java技术干货（ID:raysonfang）");
     }
 
     public static void main(String[] args) {
@@ -524,74 +226,46 @@ public class ShopServiceConsumerApplication {
     }
 
 }
-
 ```
+---
+### 7、测试
+项目启动顺序，这里再贴一下上一篇的图：
+![image](https://upload-images.jianshu.io/upload_images/7253165-e7114a4e94be8074.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/851/format/webp)
+
+nacos还没配置信息时，输入`http://localhost:8081/getConfig`，显示的是默认值
+![显示默认值](https://upload-images.jianshu.io/upload_images/7253165-f1582d4912272624.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+去nacos控制台新增如下配置：
+![新增配置](https://upload-images.jianshu.io/upload_images/7253165-1e51726e8008b316.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+![新增成功!](https://upload-images.jianshu.io/upload_images/7253165-ee8055f09fe26159.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+刷新`http://localhost:8081/getConfig`，配置由`1`更新为`hello nacos config-center!`
+![hello nacos config-center](https://upload-images.jianshu.io/upload_images/7253165-01ae7c1b15b78c7a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ---
-###6、测试
-测试的时候，启动顺序
-![启动顺序](https://upload-images.jianshu.io/upload_images/7253165-e7114a4e94be8074.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+### 8、问题记录及解决
 
-###### 6.1、启动nacos-server注册中心
+##### 8.1、对于dataID的配置不清楚，当时我使用rayson.service，导致客户端解析错误。
 
-下载nacos-server:[https://github.com/alibaba/nacos/releases](https://github.com/alibaba/nacos/releases)
-
-![nacos-server下载](https://upload-images.jianshu.io/upload_images/7253165-c23be4d47feada66.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-解压nacos-server, 找到bin目录
-![](https://upload-images.jianshu.io/upload_images/7253165-a3c8d25e9f2c2680.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-windows点击startup.cmd, 启动nacos
-![nacos-server](https://upload-images.jianshu.io/upload_images/7253165-888039c6921d3b7a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-在浏览器中输入：`http://localhost:8848/nacos/index.html`, 便可以访问到nacos的控制台。用户名和密码默认为`nacos`
-![](https://upload-images.jianshu.io/upload_images/7253165-c6fc8f5773247914.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-###### 6.2、启动shop-service-provider服务提供者
-![](https://upload-images.jianshu.io/upload_images/7253165-eef3866099b5a1d8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-在nacos控制台可以看到信息：
-![](https://upload-images.jianshu.io/upload_images/7253165-03fa2ac1bf81d221.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-###### 6.3、启动shop-service-consumer服务消费者
-
-![](https://upload-images.jianshu.io/upload_images/7253165-b01fa24e6bb9522d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-在nacos控制台可以看到如下信息：
-![](https://upload-images.jianshu.io/upload_images/7253165-e0894e862dbbe110.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-在浏览器端输入：[http://localhost:8081/sayHello](http://localhost:8081/sayHello)， 便会返回结果。
-![](https://upload-images.jianshu.io/upload_images/7253165-40f28b57fb658311.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+**解决**：查看源码得知，在NacosUtils.java中，对dataId有解析，`.`后面的值相当于文件后缀名。故，如果需要配置，则配置成支持的文件后缀名。
+![](https://upload-images.jianshu.io/upload_images/7253165-c4133c25001e283d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ---
-###7、问题记录及解决
-
-###### 7.1、在整合的时候，pom引入dubbo及nacos相关依赖包，花费时间蛮多。主要是包引入不成功。
-
-解决：去maven的本地依赖库中，删除引入不成功的依赖包，在重新reimport。
-
-###### 7.2、 在开启dubbo的时候，注解引用不正确：错误注入`@EnableDubboConfig`。
-
-解决： 换成使用`@EnableDubbo`。
-
-###### 7.3、yml配置Dubbo的相关属性，网上资料蛮少的。
-
-解决：通过查看`DubboConfigurationProperties.java`源码，去分析属性配置。
-
----
-###8、后记
-
+### 9、后记
 > 由于能力有限，若有错误或者不当之处，还请大家批评指正，一起学习交流！
 
-源代码放置Github: [https://github.com/raysonfang/spring-boot-demo-all](https://github.com/raysonfang/spring-boot-demo-all)
+源代码放置Github: [https://github.com/raysonfang/spring-boot-demo-all](https://github.com/raysonfang/spring-boot-demo-all)
 
 欢迎大家star, 批评
 
 我平常学习，编码也都会放置github上，欢迎持续关注交流。
-我的github: [https://github.com/raysonfang](https://github.com/raysonfang)
+我的github: [https://github.com/raysonfang](https://github.com/raysonfang)
 
+![Java技术干货](https://upload-images.jianshu.io/upload_images/7253165-4a99cec9508f7c11.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/601/format/webp)
 
-![](https://upload-images.jianshu.io/upload_images/7253165-4a99cec9508f7c11.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-
+---
+文章推荐
+[1. Spring Boot 2.x 基础案例：整合Dubbo 2.7.3+Nacos1.1.3（注册中心）](https://www.jianshu.com/p/b0dddce1d404)
 
