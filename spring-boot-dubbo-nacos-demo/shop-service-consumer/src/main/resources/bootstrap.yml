@@ -1,0 +1,4 @@
+
+dubbo:
+  application:
+    logger: log4j2

@@ -10,7 +10,7 @@
 	</Properties>
     <Appenders>  
         <Console name="Console" target="SYSTEM_OUT">  
-            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss} %5p %c{1}:%L - %m%n" />  
+            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss} %5p %c:%L - %m%n" />
         </Console>  
          <!-- 程序调试日志 -->  
         <RollingRandomAccessFile name="DevLog" fileName="${LOG_HOME}/${SERVER_NAME}_dev/${date:yyyy_MM}/${SERVER_NAME}_${date:yyyy_MM}"  

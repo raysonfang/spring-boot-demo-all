@@ -1,6 +1,6 @@
 package cn.raysonblog.shopserviceconsumer;
 
-import cn.raysonblog.shopserviceprovider.service.RpcShopService;
+import cn.raysonblog.shopservice.api.service.RpcShopService;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

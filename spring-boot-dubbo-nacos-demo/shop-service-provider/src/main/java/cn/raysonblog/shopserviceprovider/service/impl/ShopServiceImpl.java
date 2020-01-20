@@ -1,6 +1,6 @@
 package cn.raysonblog.shopserviceprovider.service.impl;
 
-import cn.raysonblog.shopserviceprovider.service.RpcShopService;
+import cn.raysonblog.shopservice.api.service.RpcShopService;
 import org.apache.dubbo.config.annotation.Service;
 
 /**
